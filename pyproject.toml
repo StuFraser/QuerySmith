@@ -8,7 +8,10 @@ version = "0.1.0"
 description = "Tiered execution-plan analysis agent (SQL Server v1)"
 requires-python = ">=3.11"
 license = "MIT"
-dependencies = ["lxml>=5.0"]
+dependencies = ["lxml>=5.0", "pyodbc>=5.0", "sqlglot>=25.0"]
+
+[project.scripts]
+querysmith = "querysmith.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

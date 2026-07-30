@@ -50,6 +50,26 @@ pip install -e . -r requirements-dev.txt
 pytest -v
 ```
 
+## Usage (CLI)
+
+`pip install -e .` installs a `querysmith` command that connects live to a SQL
+Server instance, captures an execution plan for an ad-hoc `SELECT` query, and
+prints the full Tier 0 + Tier 1 report:
+
+```bash
+export QUERYSMITH_DB_PASSWORD='your-password'   # never pass it as a flag
+querysmith --server 192.168.1.84,1433 --database AdventureWorks2025 \
+  --user your_login --query "SELECT * FROM dbo.SomeView"
+```
+
+The query must parse as a single read-only `SELECT` statement (validated via
+`sqlglot` before anything is sent to the server — stacked statements,
+`INSERT`/`UPDATE`/`DELETE`/`EXEC`, and comment-obfuscated attempts are all
+rejected). Useful flags: `--no-narrate` for fast Tier-0-only output,
+`--model`/`--ollama-timeout` to point at a different local model, `--timeout`
+for the DB connection, `--no-trust-server-certificate` if your instance has a
+CA-signed cert. Run `querysmith --help` for the full list.
+
 ## Tier 1 setup (optional, local)
 
 Tier 0 (the rules engine) works standalone with no setup. Tier 1 narration is
@@ -74,10 +94,14 @@ src/querysmith/
 ├── adapters/
 │   └── sqlserver/         # showplan XML -> IR
 ├── rules/                 # Tier 0: deterministic findings from the IR
-└── narration/             # Tier 1: local-model narration of Tier 0's findings
+├── narration/             # Tier 1: local-model narration of Tier 0's findings
+├── db/                    # live SQL Server connectivity + statement-safety validation
+└── cli.py                 # `querysmith` command
 tests/
 ├── fixtures/sqlserver/    # representative captured-plan XML
 ├── adapters/sqlserver/
 ├── rules/
-└── narration/
+├── narration/
+├── db/
+└── cli/
 ```
