@@ -1,18 +1,61 @@
 # QuerySmith
 
-Tiered execution-plan analysis agent. V1 targets SQL Server; see `design-notes/` for
-scope and the intermediate representation (IR) schema.
+**Your query execution plan, explained in plain English — for free, offline, before you ever page an on-call DBA.**
 
-## Setup
+QuerySmith connects to a database, pulls the execution plan for a query (or a stored procedure, function, trigger, or view), and runs it through a tiered analysis pipeline that catches the obvious problems deterministically and narrates them in plain English — no cloud API key required to get started.
+
+## Origin story
+
+This started as interview prep. Reading SQL Server execution plans was a gap — years of persistence-layer work meant mostly basic queries and client-side shaping, never much time spent staring at operator trees. While prepping, feeding plan XML into an LLM for interpretation turned out to be genuinely useful. QuerySmith turns that ad hoc workflow into a proper tool.
+
+## How it works
+
+Every engine gets a thin adapter that parses its native plan format into one dialect-agnostic **intermediate representation (IR)** — an operator tree with type, table, row estimates, cost, predicates, and warnings. Everything downstream — the rules engine, the model prompts — operates on the IR and never touches raw engine output.
+
+```mermaid
+flowchart LR
+    A[Native plan\nXML / JSON] --> B[Adapter\nengine → IR]
+    B --> C[Tier 0\nDeterministic rules]
+    C --> D[Tier 1\nLocal SLM narration]
+    D -.->|v2, opt-in| E[Tier 2\nAPI LLM judgment]
+```
+
+| Tier | What it does | Cost |
+|---|---|---|
+| **0 — Rules engine** | Scans vs. seeks on large tables, cardinality skew, tempdb spills, missing covering indexes, implicit conversions, parallelism warnings — the deterministic, trustworthy backbone | Free, instant, always runs |
+| **1 — Local SLM** | Explains Tier 0's findings in plain English and presents them in order — narration only, never reprioritizes | Free, local, runs by default |
+| **2 — API LLM** *(v2, deferred)* | Genuine tradeoff judgment — index write-cost vs. benefit, parameter-sniffing vs. bad plan, semantic safety of a rewrite | Opt-in, your API key |
+
+**Read-only by design.** QuerySmith never applies a fix — suggestions come out as scripts for a human to review. Enforced in layers: a DB login scoped to read-only permissions, fixed statement templates instead of string concatenation, and parser-based validation that a submitted statement is genuinely read-only shape before anything is sent.
+
+## Status
+
+- [x] Intermediate representation (IR) schema
+- [x] SQL Server plan-XML → IR adapter
+- [ ] Tier 0 deterministic rules engine
+- [ ] Tier 1 local SLM narration
+- [ ] PostgreSQL / MySQL / SQLite adapters
+- [ ] Tier 2 API LLM tier (v2)
+
+SQL Server is the v1 target — richest plan structure, real actual-execution data via `STATISTICS XML ON`. PostgreSQL is next (best-instrumented after SQL Server, validates the abstraction generalizes), then thinner MySQL/SQLite adapters once the pattern holds. NoSQL is explicitly out of scope — a different cost model (index selection / RU consumption) doesn't fit the same abstraction.
+
+## Quick start
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -e . -r requirements-dev.txt
+pytest -v
 ```
 
-## Run tests
+## Project layout
 
-```bash
-pytest -v
+```
+src/querysmith/
+├── ir/                    # dialect-agnostic intermediate representation
+└── adapters/
+    └── sqlserver/         # showplan XML -> IR
+tests/
+├── fixtures/sqlserver/    # representative captured-plan XML
+└── adapters/sqlserver/
 ```
