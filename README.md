@@ -32,8 +32,8 @@ flowchart LR
 
 - [x] Intermediate representation (IR) schema
 - [x] SQL Server plan-XML → IR adapter
-- [ ] Tier 0 deterministic rules engine
-- [ ] Tier 1 local SLM narration
+- [x] Tier 0 deterministic rules engine
+- [x] Tier 1 local SLM narration
 - [ ] PostgreSQL / MySQL / SQLite adapters
 - [ ] Tier 2 API LLM tier (v2)
 
@@ -48,14 +48,34 @@ pip install -e . -r requirements-dev.txt
 pytest -v
 ```
 
+## Tier 1 setup (optional, local)
+
+Tier 0 (the rules engine) works standalone with no setup. Tier 1 narration is
+additive: if no local model is running, `get_narration` degrades gracefully
+and falls back to Tier 0's own plain-English `summary`/`detail` text.
+
+To run a real local model:
+
+```bash
+docker compose up -d
+docker compose exec ollama ollama pull llama3.1:8b   # or qwen2.5 / phi-4 -- try a few
+```
+
+The model name is a runtime parameter to `get_narration(..., model=...)`, not
+hardcoded — swap it freely to compare candidates on your own hardware.
+
 ## Project layout
 
 ```
 src/querysmith/
 ├── ir/                    # dialect-agnostic intermediate representation
-└── adapters/
-    └── sqlserver/         # showplan XML -> IR
+├── adapters/
+│   └── sqlserver/         # showplan XML -> IR
+├── rules/                 # Tier 0: deterministic findings from the IR
+└── narration/             # Tier 1: local-model narration of Tier 0's findings
 tests/
 ├── fixtures/sqlserver/    # representative captured-plan XML
-└── adapters/sqlserver/
+├── adapters/sqlserver/
+├── rules/
+└── narration/
 ```
