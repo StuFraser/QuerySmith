@@ -30,9 +30,11 @@ __all__ = ["get_narration", "DEFAULT_MODEL"]
 
 GenerateFn = Callable[[str, str], dict]
 
-# Placeholder pending real benchmarking against Llama 3.1 8B / Qwen2.5 / Phi-4
-# on real hardware (out of scope here) -- always overridable via `model=`.
-DEFAULT_MODEL = "llama3.1:8b"
+# Verified against real hardware (7.6GB RAM, CPU-only): llama3.1:8b OOM'd and
+# errored out after several minutes; llama3.2:3b ran end-to-end (~2.5 tok/s,
+# slow but stable). Still worth benchmarking Qwen2.5 / Phi-4 variants against
+# your own hardware -- always overridable via `model=`.
+DEFAULT_MODEL = "llama3.2:3b"
 
 _SEVERITY_ORDER = (Severity.CRITICAL, Severity.WARNING, Severity.INFO)
 

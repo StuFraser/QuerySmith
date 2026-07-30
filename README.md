@@ -60,7 +60,7 @@ To run a real local model:
 
 ```bash
 docker compose up -d
-docker compose exec ollama ollama pull llama3.1:8b   # or qwen2.5 / phi-4 -- try a few
+docker compose exec ollama ollama pull llama3.2:3b   # default -- on 8GB-RAM CPU-only boxes, an 8B model will OOM
 ```
 
 The model name is a runtime parameter to `get_narration(..., model=...)`, not
