@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "querysmith"
+version = "0.1.0"
+description = "Tiered execution-plan analysis agent (SQL Server v1)"
+requires-python = ">=3.11"
+dependencies = ["lxml>=5.0"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

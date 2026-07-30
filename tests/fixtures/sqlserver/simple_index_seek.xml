@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ShowPlanXML xmlns="http://schemas.microsoft.com/sqlserver/2004/07/showplan" Version="1.539" Build="16.0.1000.6">
+  <BatchSequence>
+    <Batch>
+      <Statements>
+        <StmtSimple StatementText="SELECT OrderID, OrderDate FROM dbo.Orders WHERE CustomerID = 4471"
+                    StatementType="SELECT" StatementSubTreeCost="0.0032831" StatementEstRows="1">
+          <QueryPlan CachedPlanSize="16" CompileTime="1" CompileCPU="1" CompileMemory="152">
+            <MemoryGrantInfo SerialRequiredMemory="0" SerialDesiredMemory="0" GrantedMemory="1024" MaxUsedMemory="512" />
+            <RelOp NodeId="0" PhysicalOp="Index Seek" LogicalOp="Index Seek" EstimateRows="1"
+                   EstimateIO="0.003125" EstimateCPU="0.0001581" AvgRowSize="27"
+                   EstimatedTotalSubtreeCost="0.0032831" Parallel="0" EstimatedExecutionMode="Row">
+              <OutputList>
+                <ColumnReference Column="OrderID" />
+                <ColumnReference Column="OrderDate" />
+              </OutputList>
+              <RunTimeInformation>
+                <RunTimeCountersPerThread Thread="0" ActualRows="1" ActualExecutions="1" ActualElapsedms="1" />
+              </RunTimeInformation>
+              <IndexScan Lookup="0" Ordered="1" ScanDirection="FORWARD" ForcedIndex="0" NoExpandHint="0" Storage="RowStore">
+                <DefinedValues>
+                  <DefinedValue>
+                    <ColumnReference Column="OrderID" />
+                  </DefinedValue>
+                </DefinedValues>
+                <Object Database="[TestDB]" Schema="[dbo]" Table="[Orders]" Index="[IX_Orders_CustomerID]" IndexKind="NonClustered" />
+                <SeekPredicates>
+                  <SeekPredicateNew>
+                    <Prefix ScanType="Equality">
+                      <RangeColumns>
+                        <ColumnReference Column="CustomerID" />
+                      </RangeColumns>
+                      <RangeExpressions>
+                        <ScalarOperator ScalarString="[TestDB].[dbo].[Orders].[CustomerID]=(4471)" />
+                      </RangeExpressions>
+                    </Prefix>
+                  </SeekPredicateNew>
+                </SeekPredicates>
+              </IndexScan>
+            </RelOp>
+          </QueryPlan>
+        </StmtSimple>
+      </Statements>
+    </Batch>
+  </BatchSequence>
+</ShowPlanXML>

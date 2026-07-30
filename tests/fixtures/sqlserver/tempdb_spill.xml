@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ShowPlanXML xmlns="http://schemas.microsoft.com/sqlserver/2004/07/showplan" Version="1.539" Build="16.0.1000.6">
+  <BatchSequence>
+    <Batch>
+      <Statements>
+        <StmtSimple StatementText="SELECT CustomerID, SUM(Amount) FROM dbo.Orders GROUP BY CustomerID ORDER BY SUM(Amount)"
+                    StatementType="SELECT" StatementSubTreeCost="5.2" StatementEstRows="200">
+          <QueryPlan CachedPlanSize="20" CompileTime="3" CompileCPU="3" CompileMemory="300">
+            <MemoryGrantInfo SerialRequiredMemory="1024" SerialDesiredMemory="1024" GrantedMemory="16384" MaxUsedMemory="40960" />
+            <RelOp NodeId="0" PhysicalOp="Sort" LogicalOp="Sort" EstimateRows="200"
+                   EstimateIO="0" EstimateCPU="2.1" AvgRowSize="30"
+                   EstimatedTotalSubtreeCost="5.2" Parallel="0" EstimatedExecutionMode="Row">
+              <OutputList>
+                <ColumnReference Column="CustomerID" />
+                <ColumnReference Column="Expr1" />
+              </OutputList>
+              <RunTimeInformation>
+                <RunTimeCountersPerThread Thread="0" ActualRows="195" ActualExecutions="1" ActualElapsedms="12" />
+              </RunTimeInformation>
+              <Warnings>
+                <SpillToTempDb SpillLevel="1" />
+              </Warnings>
+              <Sort Distinct="0">
+                <OrderBy>
+                  <OrderByColumn Ascending="1">
+                    <ColumnReference Column="Expr1" />
+                  </OrderByColumn>
+                </OrderBy>
+              </Sort>
+              <RelOp NodeId="1" PhysicalOp="Stream Aggregate" LogicalOp="Aggregate" EstimateRows="200"
+                     EstimateIO="0" EstimateCPU="0.3" AvgRowSize="30"
+                     EstimatedTotalSubtreeCost="3.1" Parallel="0" EstimatedExecutionMode="Row">
+                <OutputList>
+                  <ColumnReference Column="CustomerID" />
+                  <ColumnReference Column="Expr1" />
+                </OutputList>
+                <RunTimeInformation>
+                  <RunTimeCountersPerThread Thread="0" ActualRows="195" ActualExecutions="1" ActualElapsedms="8" />
+                </RunTimeInformation>
+                <StreamAggregate>
+                  <DefinedValues>
+                    <DefinedValue>
+                      <ColumnReference Column="Expr1" />
+                    </DefinedValue>
+                  </DefinedValues>
+                </StreamAggregate>
+                <RelOp NodeId="2" PhysicalOp="Clustered Index Scan" LogicalOp="Clustered Index Scan" EstimateRows="1000"
+                       EstimateIO="2.5" EstimateCPU="0.3" AvgRowSize="30"
+                       EstimatedTotalSubtreeCost="2.8" Parallel="0" EstimatedExecutionMode="Row">
+                  <OutputList>
+                    <ColumnReference Column="CustomerID" />
+                    <ColumnReference Column="Amount" />
+                  </OutputList>
+                  <RunTimeInformation>
+                    <RunTimeCountersPerThread Thread="0" ActualRows="1000" ActualExecutions="1" ActualElapsedms="5" />
+                  </RunTimeInformation>
+                  <IndexScan Lookup="0" Ordered="0" ScanDirection="FORWARD" ForcedIndex="0" NoExpandHint="0" Storage="RowStore">
+                    <DefinedValues>
+                      <DefinedValue>
+                        <ColumnReference Column="CustomerID" />
+                      </DefinedValue>
+                    </DefinedValues>
+                    <Object Database="[TestDB]" Schema="[dbo]" Table="[Orders]" Index="[PK_Orders]" IndexKind="Clustered" />
+                  </IndexScan>
+                </RelOp>
+              </RelOp>
+            </RelOp>
+          </QueryPlan>
+        </StmtSimple>
+      </Statements>
+    </Batch>
+  </BatchSequence>
+</ShowPlanXML>

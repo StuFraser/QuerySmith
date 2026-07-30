@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ShowPlanXML xmlns="http://schemas.microsoft.com/sqlserver/2004/07/showplan" Version="1.539" Build="16.0.1000.6">
+  <BatchSequence>
+    <Batch>
+      <Statements>
+        <StmtSimple StatementText="SELECT * FROM dbo.Orders WHERE OrderDate &gt; '2020-01-01'"
+                    StatementType="SELECT" StatementSubTreeCost="98.432" StatementEstRows="50">
+          <QueryPlan CachedPlanSize="24" CompileTime="2" CompileCPU="2" CompileMemory="200">
+            <RelOp NodeId="0" PhysicalOp="Table Scan" LogicalOp="Table Scan" EstimateRows="50"
+                   EstimateIO="90.1" EstimateCPU="8.332" AvgRowSize="180"
+                   EstimatedTotalSubtreeCost="98.432" Parallel="1" EstimatedExecutionMode="Row">
+              <OutputList>
+                <ColumnReference Column="OrderID" />
+                <ColumnReference Column="OrderDate" />
+              </OutputList>
+              <RunTimeInformation>
+                <RunTimeCountersPerThread Thread="1" ActualRows="250000" ActualExecutions="1" ActualElapsedms="410" />
+                <RunTimeCountersPerThread Thread="2" ActualRows="250000" ActualExecutions="1" ActualElapsedms="405" />
+              </RunTimeInformation>
+              <Warnings>
+                <ColumnsWithNoStatistics>
+                  <ColumnReference Column="OrderDate" />
+                </ColumnsWithNoStatistics>
+              </Warnings>
+              <TableScan Storage="RowStore">
+                <DefinedValues>
+                  <DefinedValue>
+                    <ColumnReference Column="OrderID" />
+                  </DefinedValue>
+                </DefinedValues>
+                <Object Database="[TestDB]" Schema="[dbo]" Table="[Orders]" />
+                <Predicate>
+                  <ScalarOperator ScalarString="[TestDB].[dbo].[Orders].[OrderDate]&gt;'2020-01-01'" />
+                </Predicate>
+              </TableScan>
+            </RelOp>
+          </QueryPlan>
+        </StmtSimple>
+      </Statements>
+    </Batch>
+  </BatchSequence>
+</ShowPlanXML>

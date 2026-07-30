@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ShowPlanXML xmlns="http://schemas.microsoft.com/sqlserver/2004/07/showplan" Version="1.539" Build="16.0.1000.6">
+  <BatchSequence>
+    <Batch>
+      <Statements>
+        <StmtSimple StatementText="SELECT o.OrderID, o.OrderDate, c.CustomerName FROM dbo.Orders o JOIN dbo.Customers c ON o.CustomerID = c.CustomerID WHERE o.Status = 'Pending' AND o.OrderDate &gt; '2024-01-01'"
+                    StatementType="SELECT" StatementSubTreeCost="4.512" StatementEstRows="42">
+          <QueryPlan CachedPlanSize="28" CompileTime="4" CompileCPU="4" CompileMemory="350">
+            <MissingIndexes>
+              <MissingIndexGroup Impact="87.6">
+                <MissingIndex Database="[TestDB]" Schema="[dbo]" Table="[Orders]">
+                  <ColumnGroup Usage="EQUALITY">
+                    <Column Name="[Status]" ColumnId="1" />
+                  </ColumnGroup>
+                  <ColumnGroup Usage="INEQUALITY">
+                    <Column Name="[OrderDate]" ColumnId="2" />
+                  </ColumnGroup>
+                  <ColumnGroup Usage="INCLUDE">
+                    <Column Name="[OrderID]" ColumnId="3" />
+                  </ColumnGroup>
+                </MissingIndex>
+              </MissingIndexGroup>
+            </MissingIndexes>
+            <RelOp NodeId="0" PhysicalOp="Nested Loops" LogicalOp="Inner Join" EstimateRows="42"
+                   EstimateIO="0" EstimateCPU="0.02" AvgRowSize="50"
+                   EstimatedTotalSubtreeCost="4.512" Parallel="0" EstimatedExecutionMode="Row">
+              <OutputList>
+                <ColumnReference Column="OrderID" />
+                <ColumnReference Column="OrderDate" />
+                <ColumnReference Column="CustomerName" />
+              </OutputList>
+              <RunTimeInformation>
+                <RunTimeCountersPerThread Thread="0" ActualRows="40" ActualExecutions="1" ActualElapsedms="15" />
+              </RunTimeInformation>
+              <NestedLoops Optimized="1">
+                <Predicate>
+                  <ScalarOperator ScalarString="[TestDB].[dbo].[Customers].[CustomerID]=[TestDB].[dbo].[Orders].[CustomerID]" />
+                </Predicate>
+              </NestedLoops>
+              <RelOp NodeId="1" PhysicalOp="Index Seek" LogicalOp="Index Seek" EstimateRows="500"
+                     EstimateIO="0.5" EstimateCPU="0.05" AvgRowSize="40"
+                     EstimatedTotalSubtreeCost="0.6" Parallel="0" EstimatedExecutionMode="Row">
+                <OutputList>
+                  <ColumnReference Column="CustomerID" />
+                  <ColumnReference Column="CustomerName" />
+                </OutputList>
+                <RunTimeInformation>
+                  <RunTimeCountersPerThread Thread="0" ActualRows="500" ActualExecutions="1" ActualElapsedms="3" />
+                </RunTimeInformation>
+                <IndexScan Lookup="0" Ordered="1" ScanDirection="FORWARD" ForcedIndex="0" NoExpandHint="0" Storage="RowStore">
+                  <DefinedValues>
+                    <DefinedValue>
+                      <ColumnReference Column="CustomerName" />
+                    </DefinedValue>
+                  </DefinedValues>
+                  <Object Database="[TestDB]" Schema="[dbo]" Table="[Customers]" Index="[PK_Customers]" IndexKind="Clustered" />
+                </IndexScan>
+              </RelOp>
+              <RelOp NodeId="2" PhysicalOp="Nested Loops" LogicalOp="Inner Join" EstimateRows="40"
+                     EstimateIO="0" EstimateCPU="0.01" AvgRowSize="50"
+                     EstimatedTotalSubtreeCost="3.9" Parallel="0" EstimatedExecutionMode="Row">
+                <OutputList>
+                  <ColumnReference Column="OrderID" />
+                  <ColumnReference Column="OrderDate" />
+                </OutputList>
+                <RunTimeInformation>
+                  <RunTimeCountersPerThread Thread="0" ActualRows="40" ActualExecutions="500" ActualElapsedms="14" />
+                </RunTimeInformation>
+                <NestedLoops Optimized="1" />
+                <RelOp NodeId="3" PhysicalOp="Index Seek" LogicalOp="Index Seek" EstimateRows="1"
+                       EstimateIO="0.003" EstimateCPU="0.0002" AvgRowSize="20"
+                       EstimatedTotalSubtreeCost="1.6" Parallel="0" EstimatedExecutionMode="Row">
+                  <OutputList>
+                    <ColumnReference Column="OrderID" />
+                  </OutputList>
+                  <RunTimeInformation>
+                    <RunTimeCountersPerThread Thread="0" ActualRows="40" ActualExecutions="500" ActualElapsedms="6" />
+                  </RunTimeInformation>
+                  <IndexScan Lookup="0" Ordered="0" ScanDirection="FORWARD" ForcedIndex="0" NoExpandHint="0" Storage="RowStore">
+                    <DefinedValues>
+                      <DefinedValue>
+                        <ColumnReference Column="OrderID" />
+                      </DefinedValue>
+                    </DefinedValues>
+                    <Object Database="[TestDB]" Schema="[dbo]" Table="[Orders]" Index="[IX_Orders_CustomerID]" IndexKind="NonClustered" />
+                    <SeekPredicates>
+                      <SeekPredicateNew>
+                        <Prefix ScanType="Equality">
+                          <RangeColumns>
+                            <ColumnReference Column="CustomerID" />
+                          </RangeColumns>
+                          <RangeExpressions>
+                            <ScalarOperator ScalarString="[TestDB].[dbo].[Orders].[CustomerID]=[TestDB].[dbo].[Customers].[CustomerID]" />
+                          </RangeExpressions>
+                        </Prefix>
+                      </SeekPredicateNew>
+                    </SeekPredicates>
+                  </IndexScan>
+                </RelOp>
+                <RelOp NodeId="4" PhysicalOp="Clustered Index Seek" LogicalOp="Clustered Index Seek" EstimateRows="1"
+                       EstimateIO="0.003125" EstimateCPU="0.0001" AvgRowSize="50"
+                       EstimatedTotalSubtreeCost="2.3" Parallel="0" EstimatedExecutionMode="Row">
+                  <OutputList>
+                    <ColumnReference Column="OrderDate" />
+                  </OutputList>
+                  <RunTimeInformation>
+                    <RunTimeCountersPerThread Thread="0" ActualRows="40" ActualExecutions="40" ActualElapsedms="5" />
+                  </RunTimeInformation>
+                  <IndexScan Lookup="1" Ordered="0" ScanDirection="FORWARD" ForcedIndex="0" NoExpandHint="0" Storage="RowStore">
+                    <DefinedValues>
+                      <DefinedValue>
+                        <ColumnReference Column="OrderDate" />
+                      </DefinedValue>
+                    </DefinedValues>
+                    <Object Database="[TestDB]" Schema="[dbo]" Table="[Orders]" Index="[PK_Orders]" IndexKind="Clustered" />
+                    <Predicate>
+                      <ScalarOperator ScalarString="[TestDB].[dbo].[Orders].[Status]='Pending' AND [TestDB].[dbo].[Orders].[OrderDate]&gt;'2024-01-01'" />
+                    </Predicate>
+                  </IndexScan>
+                </RelOp>
+              </RelOp>
+            </RelOp>
+          </QueryPlan>
+        </StmtSimple>
+      </Statements>
+    </Batch>
+  </BatchSequence>
+</ShowPlanXML>
