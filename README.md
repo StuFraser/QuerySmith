@@ -1,5 +1,7 @@
 # QuerySmith
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 **Your query execution plan, explained in plain English — for free, offline, before you ever page an on-call DBA.**
 
 QuerySmith connects to a database, pulls the execution plan for a query (or a stored procedure, function, trigger, or view), and runs it through a tiered analysis pipeline that catches the obvious problems deterministically and narrates them in plain English — no cloud API key required to get started.
