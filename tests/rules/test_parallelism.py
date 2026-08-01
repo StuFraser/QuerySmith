@@ -7,6 +7,7 @@ def test_parallel_root_flagged_info(op_factory, plan_factory):
     matches = [f for f in evaluate(plan_factory(root)) if f.rule_id == "parallelism_used"]
     assert len(matches) == 1
     assert matches[0].severity == Severity.INFO
+    assert matches[0].suggested_fix is None
 
 
 def test_serial_root_not_flagged(op_factory, plan_factory):

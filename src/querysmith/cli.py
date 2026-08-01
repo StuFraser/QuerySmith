@@ -161,6 +161,16 @@ def format_report(summary: PlanSummary, findings: list[Finding], narration: Opti
             fn = narration_by_index.get(i)
             if fn is not None:
                 lines.append(f"    Explanation: {fn.explanation}")
+            if finding.suggested_fix:
+                fix_text, fix_label = finding.suggested_fix, "Suggested fix:"
+            elif fn is not None and fn.suggested_fix:
+                fix_text, fix_label = fn.suggested_fix, "Suggested fix (model):"
+            else:
+                fix_text = None
+            if fix_text is not None:
+                lines.append(f"    {fix_label}")
+                for fix_line in fix_text.splitlines():
+                    lines.append(f"        {fix_line}")
             lines.append("")
 
     lines.append("Overview")

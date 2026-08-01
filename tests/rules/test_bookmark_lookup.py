@@ -12,6 +12,7 @@ def test_bookmark_lookup_flagged(op_factory, plan_factory):
     assert len(matches) == 1
     assert matches[0].severity == Severity.WARNING
     assert "Orders" in matches[0].summary
+    assert matches[0].suggested_fix is None
 
 
 def test_regular_seek_not_flagged(op_factory, plan_factory):

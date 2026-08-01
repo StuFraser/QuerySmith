@@ -105,6 +105,52 @@ def test_duplicate_finding_index_first_occurrence_wins(op_factory, plan_factory,
     assert narration.findings[0].explanation == "first"
 
 
+def test_model_suggested_fix_threaded_through_when_no_tier0_fix(op_factory, plan_factory, finding_factory):
+    findings = [finding_factory(rule_id="large_table_scan")]
+    summary = _summary(op_factory, plan_factory)
+
+    def client(prompt, model):
+        return {
+            "overview": "ok",
+            "findings": [
+                {"finding_index": 0, "explanation": "explains it", "suggested_fix": "Add a WHERE clause."}
+            ],
+        }
+
+    narration = get_narration(findings, summary, client=client)
+    assert narration.findings[0].suggested_fix == "Add a WHERE clause."
+
+
+def test_tier0_fix_wins_over_model_fix(op_factory, plan_factory, finding_factory):
+    findings = [finding_factory(rule_id="missing_index_available", suggested_fix="CREATE NONCLUSTERED INDEX ...;")]
+    summary = _summary(op_factory, plan_factory)
+
+    def client(prompt, model):
+        return {
+            "overview": "ok",
+            "findings": [
+                {"finding_index": 0, "explanation": "explains it", "suggested_fix": "Model's competing suggestion"}
+            ],
+        }
+
+    narration = get_narration(findings, summary, client=client)
+    assert narration.findings[0].suggested_fix is None
+
+
+def test_missing_or_null_suggested_fix_not_fabricated(op_factory, plan_factory, finding_factory):
+    findings = [finding_factory(rule_id="cardinality_skew")]
+    summary = _summary(op_factory, plan_factory)
+
+    def client(prompt, model):
+        return {
+            "overview": "ok",
+            "findings": [{"finding_index": 0, "explanation": "explains it", "suggested_fix": None}],
+        }
+
+    narration = get_narration(findings, summary, client=client)
+    assert narration.findings[0].suggested_fix is None
+
+
 def test_client_error_fully_degrades(op_factory, plan_factory, finding_factory):
     findings = [finding_factory(rule_id="a", summary="A summary", detail="A detail")]
     summary = _summary(op_factory, plan_factory)

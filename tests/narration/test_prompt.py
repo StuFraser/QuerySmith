@@ -35,6 +35,19 @@ def test_prompt_contains_schema_instructions():
     assert "overview" in prompt
     assert "finding_index" in prompt
     assert "explanation" in prompt
+    assert "suggested_fix" in prompt
+
+
+def test_prompt_includes_tier0_suggested_fix_when_present(finding_factory):
+    findings = [finding_factory(suggested_fix="CREATE NONCLUSTERED INDEX [IX_Orders_Status] ON [Orders] ([Status]);")]
+    prompt = build_prompt(_dummy_summary(), findings)
+    assert "CREATE NONCLUSTERED INDEX" in prompt
+
+
+def test_prompt_null_suggested_fix_when_absent(finding_factory):
+    findings = [finding_factory(suggested_fix=None)]
+    prompt = build_prompt(_dummy_summary(), findings)
+    assert '"suggested_fix": null' in prompt
 
 
 def test_prompt_is_deterministic(finding_factory):

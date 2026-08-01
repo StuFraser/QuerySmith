@@ -7,6 +7,7 @@ def test_large_scan_flagged_warning(op_factory, plan_factory):
     matches = [f for f in evaluate(plan_factory(root)) if f.rule_id == "large_table_scan"]
     assert len(matches) == 1
     assert matches[0].severity == Severity.WARNING
+    assert matches[0].suggested_fix is None
 
 
 def test_very_large_scan_flagged_critical(op_factory, plan_factory):

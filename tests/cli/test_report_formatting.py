@@ -26,10 +26,30 @@ def _summary(**overrides):
 
 def _finding(**overrides):
     defaults = dict(
-        rule_id="large_table_scan", severity=Severity.WARNING, operator_id="0", summary="Big scan", detail="detail"
+        rule_id="large_table_scan",
+        severity=Severity.WARNING,
+        operator_id="0",
+        summary="Big scan",
+        detail="detail",
+        suggested_fix=None,
     )
     defaults.update(overrides)
     return Finding(**defaults)
+
+
+def _finding_narration(**overrides):
+    defaults = dict(
+        rule_id="large_table_scan",
+        severity=Severity.WARNING,
+        operator_id="0",
+        summary="Big scan",
+        detail="detail",
+        explanation="Model explanation",
+        explanation_source="model",
+        suggested_fix=None,
+    )
+    defaults.update(overrides)
+    return FindingNarration(**defaults)
 
 
 def test_zero_findings():
@@ -68,6 +88,51 @@ def test_findings_with_model_narration():
 def test_findings_with_narration_disabled():
     report = format_report(_summary(), [_finding()], None)
     assert "narration disabled" in report.lower()
+
+
+def test_tier0_suggested_fix_shown_without_model_label():
+    findings = [_finding(rule_id="missing_index_available", suggested_fix="CREATE NONCLUSTERED INDEX [IX_x] ON [Orders] ([Status]);")]
+    report = format_report(_summary(), findings, None)
+    assert "Suggested fix:" in report
+    assert "Suggested fix (model):" not in report
+    assert "CREATE NONCLUSTERED INDEX" in report
+
+
+def test_model_suggested_fix_shown_with_model_label_when_no_tier0_fix():
+    findings = [_finding(suggested_fix=None)]
+    narration = Narration(
+        overview="Overview text",
+        overview_source="model",
+        findings=[_finding_narration(suggested_fix="Add a WHERE clause to filter earlier.")],
+        degraded=False,
+        degraded_reason=None,
+        model_name="llama3.2:3b",
+    )
+    report = format_report(_summary(), findings, narration)
+    assert "Suggested fix (model):" in report
+    assert "Add a WHERE clause to filter earlier." in report
+
+
+def test_tier0_fix_wins_over_model_fix_in_report():
+    findings = [_finding(rule_id="missing_index_available", suggested_fix="CREATE NONCLUSTERED INDEX [IX_x] ON [Orders] ([Status]);")]
+    narration = Narration(
+        overview="Overview text",
+        overview_source="model",
+        findings=[_finding_narration(rule_id="missing_index_available", suggested_fix="Model's competing suggestion")],
+        degraded=False,
+        degraded_reason=None,
+        model_name="llama3.2:3b",
+    )
+    report = format_report(_summary(), findings, narration)
+    assert "Suggested fix:" in report
+    assert "Suggested fix (model):" not in report
+    assert "Model's competing suggestion" not in report
+    assert "CREATE NONCLUSTERED INDEX" in report
+
+
+def test_no_suggested_fix_line_when_neither_present():
+    report = format_report(_summary(), [_finding()], None)
+    assert "Suggested fix" not in report
 
 
 def test_degraded_narration_shows_reason():

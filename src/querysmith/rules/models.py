@@ -15,3 +15,8 @@ class Finding:
     operator_id: Optional[str]
     summary: str
     detail: str
+    # Set only when Tier 0 can derive a fix mechanically from data it already
+    # has (currently: missing_index_available's CREATE INDEX script). Tier 0
+    # never guesses a fix for findings where the right remediation depends on
+    # the actual query -- that's Tier 1's job (FindingNarration.suggested_fix).
+    suggested_fix: Optional[str] = None

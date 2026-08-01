@@ -68,8 +68,22 @@ def make_plan(root_operator, warnings=None, missing_indexes=None, statement_text
     )
 
 
-def make_finding(rule_id="large_table_scan", severity=Severity.WARNING, operator_id="0", summary="Summary", detail="Detail"):
-    return Finding(rule_id=rule_id, severity=severity, operator_id=operator_id, summary=summary, detail=detail)
+def make_finding(
+    rule_id="large_table_scan",
+    severity=Severity.WARNING,
+    operator_id="0",
+    summary="Summary",
+    detail="Detail",
+    suggested_fix=None,
+):
+    return Finding(
+        rule_id=rule_id,
+        severity=severity,
+        operator_id=operator_id,
+        summary=summary,
+        detail=detail,
+        suggested_fix=suggested_fix,
+    )
 
 
 @pytest.fixture

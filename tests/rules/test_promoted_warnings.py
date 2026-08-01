@@ -11,6 +11,7 @@ def test_tempdb_spill_promoted_to_critical(op_factory, plan_factory):
     assert len(matches) == 1
     assert matches[0].severity == Severity.CRITICAL
     assert matches[0].operator_id == "0"
+    assert matches[0].suggested_fix is None
 
 
 def test_no_join_predicate_promoted_to_critical(op_factory, plan_factory):

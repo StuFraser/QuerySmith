@@ -50,6 +50,12 @@ class FindingNarration:
     detail: str
     explanation: str
     explanation_source: str
+    # Model-authored remediation suggestion. Unlike `explanation`, this has no
+    # fallback synthesis when the model doesn't provide one -- inventing a fix
+    # deterministically is exactly the kind of judgment call Tier 1 shouldn't
+    # make on its own. None when Tier 0 already supplied a fix (Finding.suggested_fix
+    # wins) or when the model didn't confidently propose one.
+    suggested_fix: Optional[str] = None
 
 
 @dataclass

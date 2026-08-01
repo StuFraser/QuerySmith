@@ -67,6 +67,7 @@ def get_narration(
         degraded_reason = f"client_error: {exc}"
 
     explanations = _extract_explanations(raw, len(findings)) if raw is not None else {}
+    model_fixes = _extract_suggested_fixes(raw, len(findings)) if raw is not None else {}
 
     finding_narrations = []
     for idx, finding in enumerate(findings):
@@ -75,6 +76,11 @@ def get_narration(
             explanation, source = model_explanation, "model"
         else:
             explanation, source = _fallback_explanation(finding), "fallback"
+        # Tier 0's own fix (if any) is a verified fact and always wins; the
+        # model is never the source of a fix for a finding Tier 0 already
+        # solved, and there's no fabricated fallback when the model gives
+        # nothing usable -- absence is shown as no fix, not an invented one.
+        suggested_fix = None if finding.suggested_fix else model_fixes.get(idx)
         finding_narrations.append(
             FindingNarration(
                 rule_id=finding.rule_id,
@@ -84,6 +90,7 @@ def get_narration(
                 detail=finding.detail,
                 explanation=explanation,
                 explanation_source=source,
+                suggested_fix=suggested_fix,
             )
         )
 
@@ -127,6 +134,26 @@ def _extract_explanations(raw: Optional[dict], num_findings: int) -> dict[int, s
         if idx in result:
             continue  # duplicate -- first occurrence wins
         result[idx] = explanation.strip()
+    return result
+
+
+def _extract_suggested_fixes(raw: Optional[dict], num_findings: int) -> dict[int, str]:
+    result: dict[int, str] = {}
+    items = raw.get("findings") if isinstance(raw, dict) else None
+    if not isinstance(items, list):
+        return result
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        idx = item.get("finding_index")
+        fix = item.get("suggested_fix")
+        if not isinstance(idx, int) or not isinstance(fix, str) or not fix.strip():
+            continue  # null/missing/non-string -- model chose not to propose one
+        if not (0 <= idx < num_findings):
+            continue  # hallucinated out-of-range index -- ignore
+        if idx in result:
+            continue  # duplicate -- first occurrence wins
+        result[idx] = fix.strip()
     return result
 
 

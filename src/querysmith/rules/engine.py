@@ -11,6 +11,7 @@ from __future__ import annotations
 from querysmith.ir.models import (
     AccessType,
     IRPlan,
+    MissingIndex,
     Operator,
     OperatorType,
     Severity,
@@ -162,6 +163,29 @@ def _check_bookmark_lookups(root: Operator) -> list[Finding]:
     return findings
 
 
+def _missing_index_script(mi: MissingIndex) -> str:
+    # NOTE: MissingIndex (see ir/models.py) doesn't carry a schema -- the IR
+    # schema doc's missing_indexes table only defines `table`. Rather than
+    # guessing "dbo", the script references the bare table name; the review
+    # comment below makes that limitation visible to whoever reads the script.
+    key_columns = mi.columns_equality + mi.columns_inequality
+    key_clause = ", ".join(f"[{c}]" for c in key_columns) if key_columns else "<no key columns reported>"
+    index_name = "IX_" + "_".join([mi.table, *key_columns]) if key_columns else f"IX_{mi.table}"
+    lines = [
+        f"CREATE NONCLUSTERED INDEX [{index_name}]",
+        f"    ON [{mi.table}] ({key_clause})",
+    ]
+    if mi.columns_include:
+        include_clause = ", ".join(f"[{c}]" for c in mi.columns_include)
+        lines.append(f"    INCLUDE ({include_clause})")
+    lines[-1] += ";"
+    lines.append(
+        "-- Review before running: table name is not schema-qualified (not tracked in the IR), "
+        "verify write-cost tradeoff, and check for an existing similar index."
+    )
+    return "\n".join(lines)
+
+
 def _check_missing_indexes(plan: IRPlan) -> list[Finding]:
     findings = []
     for mi in plan.missing_indexes:
@@ -183,6 +207,7 @@ def _check_missing_indexes(plan: IRPlan) -> list[Finding]:
                     f"equality={mi.columns_equality}, inequality={mi.columns_inequality}, "
                     f"include={mi.columns_include}"
                 ),
+                suggested_fix=_missing_index_script(mi),
             )
         )
     return findings
