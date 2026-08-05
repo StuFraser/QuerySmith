@@ -36,6 +36,8 @@ flowchart LR
 - [x] SQL Server plan-XML → IR adapter
 - [x] Tier 0 deterministic rules engine
 - [x] Tier 1 local SLM narration
+- [x] CLI (`querysmith`)
+- [x] Local web UI (`querysmith-web`) — v1: connection wizard, view browser, free-text query. Built and unit-tested; **not yet exercised against a live SQL Server instance** (see `design-notes/execution-plan-web-ui.md`)
 - [ ] PostgreSQL / MySQL / SQLite adapters
 - [ ] Tier 2 API LLM tier (v2)
 
@@ -70,6 +72,35 @@ rejected). Useful flags: `--no-narrate` for fast Tier-0-only output,
 for the DB connection, `--no-trust-server-certificate` if your instance has a
 CA-signed cert. Run `querysmith --help` for the full list.
 
+## Usage (Web UI)
+
+`pip install -e .` also installs a `querysmith-web` command — a local
+browser UI for the same connect → capture → analyze flow, for when typing
+a full CLI invocation for every query gets old:
+
+```bash
+querysmith-web                      # binds 127.0.0.1:8420 by default
+querysmith-web --port 8080 --reload # custom port, auto-reload for dev
+```
+
+Open the printed URL in a browser. The flow: a connection wizard (server,
+database, user, password, driver — never passed on a command line),
+followed by a single screen with a sidebar of the connected database's
+views and a free-text query box. Clicking a view just fills the query box
+with `SELECT * FROM schema.view`; there's no separate "run this view"
+path — everything funnels through the same validated, read-only query
+flow the CLI uses. Findings render as severity-colored cards with Tier 1
+narration and (when Tier 0 has one) an inert, read-only suggested-fix
+script.
+
+v1 scope is intentionally narrow: views + freeform queries only (no
+stored procedures/triggers/functions yet — see
+`design-notes/execution-plan-web-ui.md` for why), and one connection at a
+time (no concurrent multi-client sessions, no auth layer — this is a
+local, single-user tool). The API surface (`/api/connection`, `/api/views`,
+`/api/query`) is plain JSON over HTTP, so it's also intended to be reused
+by a possible future VS Code extension rather than being UI-only.
+
 ## Tier 1 setup (optional, local)
 
 Tier 0 (the rules engine) works standalone with no setup. Tier 1 narration is
@@ -96,6 +127,13 @@ src/querysmith/
 ├── rules/                 # Tier 0: deterministic findings from the IR
 ├── narration/             # Tier 1: local-model narration of Tier 0's findings
 ├── db/                    # live SQL Server connectivity + statement-safety validation
+│   └── catalog.py         # fixed-template view listing for the web UI
+├── web/                   # local web UI: FastAPI app + static frontend
+│   ├── app.py             # `/api/connection`, `/api/views`, `/api/query`
+│   ├── session.py         # in-memory single-connection session store
+│   ├── schemas.py         # pydantic request/response models
+│   ├── server.py          # `querysmith-web` command
+│   └── static/            # vanilla HTML/CSS/JS frontend, no build step
 └── cli.py                 # `querysmith` command
 tests/
 ├── fixtures/sqlserver/    # representative captured-plan XML
@@ -103,5 +141,6 @@ tests/
 ├── rules/
 ├── narration/
 ├── db/
+├── web/
 └── cli/
 ```

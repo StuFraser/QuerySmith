@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>QuerySmith</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="app-header">
+    <h1>QuerySmith</h1>
+    <div class="header-right">
+      <span id="connection-pill" class="pill pill-disconnected">Not connected</span>
+      <button id="disconnect-btn" class="btn btn-secondary hidden">Disconnect</button>
+    </div>
+  </header>
+
+  <main>
+    <section id="wizard" class="wizard hidden">
+      <h2>Connect to SQL Server</h2>
+      <form id="wizard-form">
+        <label>Server
+          <input type="text" name="server" placeholder="localhost,1433" required />
+        </label>
+        <label>Database
+          <input type="text" name="database" required />
+        </label>
+        <label>User
+          <input type="text" name="user" required />
+        </label>
+        <label>Password
+          <input type="password" name="password" required />
+        </label>
+        <label>Driver
+          <input type="text" name="driver" value="ODBC Driver 18 for SQL Server" />
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" name="trust_server_certificate" checked />
+          Trust server certificate
+        </label>
+        <label>Timeout (seconds)
+          <input type="number" name="timeout_s" value="60" min="1" />
+        </label>
+        <p class="hint">
+          Recommended: use a SQL Server login scoped to
+          <code>db_datareader</code> + <code>SHOWPLAN</code> (read-only) permissions.
+        </p>
+        <div id="wizard-error" class="error-banner hidden"></div>
+        <button type="submit" class="btn btn-primary">Test &amp; Connect</button>
+      </form>
+    </section>
+
+    <section id="workspace" class="workspace hidden">
+      <aside class="sidebar">
+        <h2>Views</h2>
+        <div id="views-error" class="error-banner hidden"></div>
+        <ul id="views-list" class="views-list"></ul>
+      </aside>
+
+      <div class="main-panel">
+        <div class="query-box">
+          <textarea id="query-input" placeholder="SELECT * FROM schema.view" rows="6"></textarea>
+          <div class="query-controls">
+            <label class="checkbox-label">
+              <input type="checkbox" id="narrate-checkbox" checked />
+              Narrate with local model
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" id="redact-checkbox" />
+              Redact predicate literals (not yet implemented &mdash; literals shown as-is)
+            </label>
+            <button id="run-btn" class="btn btn-primary">Run</button>
+          </div>
+          <div id="query-error" class="error-banner hidden"></div>
+        </div>
+
+        <div id="report" class="report hidden"></div>
+      </div>
+    </section>
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>

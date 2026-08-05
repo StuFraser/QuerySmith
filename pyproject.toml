@@ -8,13 +8,24 @@ version = "0.1.0"
 description = "Tiered execution-plan analysis agent (SQL Server v1)"
 requires-python = ">=3.11"
 license = "MIT"
-dependencies = ["lxml>=5.0", "pyodbc>=5.0", "sqlglot>=25.0"]
+dependencies = [
+    "lxml>=5.0",
+    "pyodbc>=5.0",
+    "sqlglot>=25.0",
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "pydantic>=2.0",
+]
 
 [project.scripts]
 querysmith = "querysmith.cli:main"
+querysmith-web = "querysmith.web.server:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+querysmith = ["web/static/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
