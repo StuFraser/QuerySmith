@@ -37,7 +37,7 @@ flowchart LR
 - [x] Tier 0 deterministic rules engine
 - [x] Tier 1 local SLM narration
 - [x] CLI (`querysmith`)
-- [x] Local web UI (`querysmith-web`) — v1: connection wizard, view browser, free-text query. Built and unit-tested; **not yet exercised against a live SQL Server instance** (see `design-notes/execution-plan-web-ui.md`)
+- [x] Local web UI (`querysmith-web`) — v1: connection wizard, view browser, free-text query, a Suggested Fixes panel, and an on-demand Propose Fix step. Built, unit-tested, and exercised against a live SQL Server instance (see `design-notes/execution-plan-web-ui.md`)
 - [ ] PostgreSQL / MySQL / SQLite adapters
 - [ ] Tier 2 API LLM tier (v2)
 
@@ -84,22 +84,35 @@ querysmith-web --port 8080 --reload # custom port, auto-reload for dev
 ```
 
 Open the printed URL in a browser. The flow: a connection wizard (server,
-database, user, password, driver — never passed on a command line),
-followed by a single screen with a sidebar of the connected database's
-views and a free-text query box. Clicking a view just fills the query box
-with `SELECT * FROM schema.view`; there's no separate "run this view"
-path — everything funnels through the same validated, read-only query
-flow the CLI uses. Findings render as severity-colored cards with Tier 1
-narration and (when Tier 0 has one) an inert, read-only suggested-fix
-script.
+port, database, user, password, driver — never passed on a command line,
+with a live countdown while it connects), followed by a single screen
+with a sidebar of the connected database's views and a free-text query
+box. Clicking a view fills the query box with the view's own defining
+query (extracted from its SQL Server definition), falling back to
+`SELECT * FROM schema.view` for encrypted or unparseable views; there's
+no separate "run this view" path either way — everything funnels through
+the same validated, read-only query flow the CLI uses. Findings render as
+severity-colored cards with Tier 1 narration, and every fix for the run —
+Tier 0's own scripts and Tier 1's suggestions — collects into a
+**Suggested Fixes** panel, each as an inert, read-only, copy-to-clipboard
+card.
+
+A **Propose Fix** button in that panel triggers a second, on-demand model
+call asking specifically for a rewritten query and/or a `CREATE INDEX`
+script per finding — kept separate from the main query flow since
+drafting SQL is a much slower ask for a small local model than a one-line
+explanation, and most runs don't need it. Both proposed fixes are
+re-validated (single `SELECT` / single `CREATE INDEX`) before ever being
+shown, same as everything else in this UI: suggested, never applied.
 
 v1 scope is intentionally narrow: views + freeform queries only (no
 stored procedures/triggers/functions yet — see
 `design-notes/execution-plan-web-ui.md` for why), and one connection at a
 time (no concurrent multi-client sessions, no auth layer — this is a
 local, single-user tool). The API surface (`/api/connection`, `/api/views`,
-`/api/query`) is plain JSON over HTTP, so it's also intended to be reused
-by a possible future VS Code extension rather than being UI-only.
+`/api/query`, `/api/propose-fix`) is plain JSON over HTTP, so it's also
+intended to be reused by a possible future VS Code extension rather than
+being UI-only.
 
 ## Tier 1 setup (optional, local)
 
@@ -126,11 +139,15 @@ src/querysmith/
 │   └── sqlserver/         # showplan XML -> IR
 ├── rules/                 # Tier 0: deterministic findings from the IR
 ├── narration/             # Tier 1: local-model narration of Tier 0's findings
+│   ├── engine.py          # get_narration: explanation + overview, every query run
+│   └── fix_engine.py      # propose_fixes: rewritten query / index script, on-demand only
 ├── db/                    # live SQL Server connectivity + statement-safety validation
-│   └── catalog.py         # fixed-template view listing for the web UI
+│   ├── catalog.py         # fixed-template view listing for the web UI
+│   └── query_safety.py    # validate_select_only / validate_create_index_only
 ├── web/                   # local web UI: FastAPI app + static frontend
-│   ├── app.py             # `/api/connection`, `/api/views`, `/api/query`
+│   ├── app.py             # `/api/connection`, `/api/views`, `/api/query`, `/api/propose-fix`
 │   ├── session.py         # in-memory single-connection session store
+│   ├── last_result.py     # caches the last query's findings for Propose Fix
 │   ├── schemas.py         # pydantic request/response models
 │   ├── server.py          # `querysmith-web` command
 │   └── static/            # vanilla HTML/CSS/JS frontend, no build step

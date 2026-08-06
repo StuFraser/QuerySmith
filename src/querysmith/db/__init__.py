@@ -1,7 +1,7 @@
 from querysmith.db.capture import capture_plan_xml
 from querysmith.db.catalog import list_views, ViewRef
 from querysmith.db.connection import DBCaptureError, DEFAULT_ODBC_DRIVER
-from querysmith.db.query_safety import QueryValidationError, validate_select_only
+from querysmith.db.query_safety import QueryValidationError, validate_create_index_only, validate_select_only
 
 __all__ = [
     "capture_plan_xml",
@@ -10,5 +10,6 @@ __all__ = [
     "DBCaptureError",
     "QueryValidationError",
     "validate_select_only",
+    "validate_create_index_only",
     "DEFAULT_ODBC_DRIVER",
 ]

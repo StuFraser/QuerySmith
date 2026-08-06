@@ -33,14 +33,28 @@ def test_views_happy_path(app, client):
     _connect(app, client)
 
     def fake_list_views_fn(**kwargs):
-        return [ViewRef(schema_name="dbo", view_name="Orders")]
+        return [
+            ViewRef(schema_name="dbo", view_name="Orders", select_body="SELECT o.Id\nFROM dbo.T AS o"),
+            ViewRef(schema_name="dbo", view_name="Encrypted", select_body=None),
+        ]
 
     app.dependency_overrides[get_list_views_fn] = lambda: fake_list_views_fn
 
     response = client.get("/api/views")
     assert response.status_code == 200
     assert response.json()["views"] == [
-        {"schema_name": "dbo", "view_name": "Orders", "qualified_name": "dbo.Orders"}
+        {
+            "schema_name": "dbo",
+            "view_name": "Orders",
+            "qualified_name": "dbo.Orders",
+            "select_body": "SELECT o.Id\nFROM dbo.T AS o",
+        },
+        {
+            "schema_name": "dbo",
+            "view_name": "Encrypted",
+            "qualified_name": "dbo.Encrypted",
+            "select_body": None,
+        },
     ]
 
 

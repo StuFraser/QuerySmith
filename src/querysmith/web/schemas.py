@@ -25,6 +25,9 @@ __all__ = [
     "PlanSummaryItem",
     "NarrationItem",
     "QueryResponse",
+    "ProposeFixRequest",
+    "FixItem",
+    "ProposeFixResponse",
 ]
 
 
@@ -52,6 +55,7 @@ class ViewItem(BaseModel):
     schema_name: str
     view_name: str
     qualified_name: str
+    select_body: Optional[str] = None
 
 
 class ViewsResponse(BaseModel):
@@ -107,3 +111,21 @@ class QueryResponse(BaseModel):
     summary: PlanSummaryItem
     findings: list[FindingItem]
     narration: Optional[NarrationItem] = None
+
+
+class ProposeFixRequest(BaseModel):
+    model: str = DEFAULT_MODEL
+    ollama_timeout_s: float = 600.0
+
+
+class FixItem(BaseModel):
+    finding_index: int
+    rewritten_query: Optional[str] = None
+    index_script: Optional[str] = None
+
+
+class ProposeFixResponse(BaseModel):
+    fixes: list[FixItem]
+    degraded: bool
+    degraded_reason: Optional[str] = None
+    model_name: str

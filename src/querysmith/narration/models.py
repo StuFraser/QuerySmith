@@ -66,3 +66,27 @@ class Narration:
     degraded: bool = False
     degraded_reason: Optional[str] = None
     model_name: str = ""
+
+
+@dataclass
+class FindingFix:
+    """One model-proposed remediation for a finding, from the on-demand
+    'Propose Fix' step (narration/fix_engine.py) -- never generated as part
+    of get_narration's own pass. `finding_index` ties this back to Tier 0's
+    findings list, same correlation key as FindingNarration. Both fields are
+    independently optional and re-validated before being kept: rewritten_query
+    via query_safety.validate_select_only, index_script via
+    query_safety.validate_create_index_only. Neither is ever shown unless it
+    parsed as exactly the statement shape it claims to be."""
+
+    finding_index: int
+    rewritten_query: Optional[str] = None
+    index_script: Optional[str] = None
+
+
+@dataclass
+class FixProposal:
+    fixes: list[FindingFix] = field(default_factory=list)
+    degraded: bool = False
+    degraded_reason: Optional[str] = None
+    model_name: str = ""

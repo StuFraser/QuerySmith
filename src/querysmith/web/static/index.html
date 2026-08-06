@@ -20,7 +20,10 @@
       <h2>Connect to SQL Server</h2>
       <form id="wizard-form">
         <label>Server
-          <input type="text" name="server" placeholder="localhost,1433" required />
+          <input type="text" name="server" placeholder="localhost" required />
+        </label>
+        <label>Port
+          <input type="number" name="port" placeholder="1433" min="1" max="65535" />
         </label>
         <label>Database
           <input type="text" name="database" required />
@@ -78,6 +81,13 @@
       </div>
     </section>
   </main>
+
+  <div id="run-overlay" class="overlay hidden">
+    <div class="overlay-panel">
+      <div class="spinner"></div>
+      <p id="run-overlay-text">Running query…</p>
+    </div>
+  </div>
 
   <script src="/app.js"></script>
 </body>
